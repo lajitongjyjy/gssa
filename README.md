@@ -1,6 +1,4 @@
 
-This repository contains code to reproduce results from the paper:
-
 ## Datesets
 
 - [AG's News](https://s3.amazonaws.com/fast-ai-nlp/ag_news_csv.tgz)
