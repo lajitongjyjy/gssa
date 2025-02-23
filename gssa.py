@@ -13,6 +13,7 @@ def find_synonym(xs, dist_mat, batch_size, word_max_len, threshold=0.5):
     synonyms = tf.where(synonyms_dist <= threshold, synonyms, tf.zeros_like(synonyms))
     synonyms = tf.where(synonyms >= 0, synonyms, tf.zeros_like(synonyms))
     return synonyms
+
 def gssa(
         xs,
         ys,
@@ -61,6 +62,9 @@ def gssa(
         stable=True
     )
 
+
+    suc_index = tf.not_equal(predictions, ys) 
+
     for pos in tf.range(word_max_len):
         current_idx = sorted_scores[:, pos]
         candidate_mask = tf.one_hot(current_idx, depth=word_max_len, dtype=tf.bool)
@@ -90,7 +94,10 @@ def gssa(
             modified_count,
             modified_mask
         )
+        suc_index = tf.logical_or(suc_index, tf.not_equal(new_pred, ys))
+
         success_mask = tf.not_equal(new_pred, ys)
         if tf.reduce_any(success_mask):
-            return adv_xs, success_mask, predictions 
-    return adv_xs, tf.not_equal(predictions, ys), predictions 
+            return adv_xs, suc_index, predictions 
+
+    return adv_xs, suc_index, predictions 
