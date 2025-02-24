@@ -20,11 +20,11 @@ def gssa(
         xs_mask,
         dataset,
         model,
-        max_iter,  
+        max_iter,
         num_classes,
         dist_mat,
-        dis_threshold=0.5, 
-        max_perturbed_percent=0.15,  
+        dis_threshold=0.5,
+        max_perturbed_percent=0.15,
         embedding_size=300,
         xs_org=None,
 ):
@@ -47,7 +47,7 @@ def gssa(
         adv_xs, 1.0, dataset, reuse=True
     )
     loss = compute_loss(logits, ys, num_classes)
-    Jacobian = tf.gradients(loss, embedded_chars)[0] 
+    Jacobian = tf.gradients(loss, embedded_chars)[0]
     synonyms_embed = tf.gather_nd(embeddings, tf.expand_dims(synonyms, -1))
     xs_embed = tf.expand_dims(embedded_chars, -2)
     Jacobian = tf.expand_dims(Jacobian, -2)
@@ -63,7 +63,7 @@ def gssa(
     )
 
 
-    suc_index = tf.not_equal(predictions, ys) 
+    suc_index = tf.not_equal(predictions, ys)
 
     for pos in tf.range(word_max_len):
         current_idx = sorted_scores[:, pos]
@@ -71,16 +71,16 @@ def gssa(
         current_synonyms = tf.boolean_mask(synonyms, candidate_mask)
         new_adv_xs = tf.where(
             candidate_mask,
-            current_synonyms[:, 0], 
+            current_synonyms[:, 0],
             adv_xs
         )
         _, _, new_pred, _ = query(new_adv_xs, 1.0, dataset, reuse=True)
         modified_count = modified_mask + tf.cast(candidate_mask, tf.int32)
         perturb_ratio = tf.cast(modified_count, tf.float32) / tf.cast(words_num, tf.float32)
         update_mask = tf.logical_and(
-            tf.equal(predictions, ys), 
+            tf.equal(predictions, ys),
             tf.logical_and(
-                tf.equal(new_pred, ys), 
+                tf.equal(new_pred, ys),
                 tf.less(perturb_ratio, max_perturbed_percent)
             )
         )
@@ -98,6 +98,6 @@ def gssa(
 
         success_mask = tf.not_equal(new_pred, ys)
         if tf.reduce_any(success_mask):
-            return adv_xs, suc_index, predictions 
+            return adv_xs, suc_index, predictions
 
     return adv_xs, suc_index, predictions 
